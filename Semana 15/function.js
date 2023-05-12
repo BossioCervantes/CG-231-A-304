@@ -43,22 +43,94 @@ scene.add(arrowX);
 scene.add(arrowY);
 scene.add(arrowZ);
 
-//Variables
-
-n = 5;
-Xo = 0;
-Yo = 0;
-R = 1;
-
 // Funciones
 
-function poligono(n, R) {
-
+function crearPoligono(nlados, radio) {
+    const geometry = new THREE.BufferGeometry();
     const vertices = [];
-    const ang = 2*Math.PI/nlados;
-    for (i=0; i<=nlados; i++) {
-        vertices.push([radio*Math.cos(i*ang), radio*Math.sin(i*ang)]);
+  
+    // Se calculan de los vértices del polígono
+    const ang = (2 * Math.PI) / nlados;
+    for (let i = 0; i < nlados + 1; i++) {
+      const x = radio * Math.cos(i * ang);
+      const y = radio * Math.sin(i * ang);
+      vertices.push(x, y, 0); // Se agregan la coordenada Z como 0
     }
-    return vertices;
+  
+    // Se agregan los vértices a la geometría
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+  
+    // Se crea un material para el polígono
+    const material = new THREE.LineBasicMaterial({ color: 0x000fff });
+  
+    // Se crea un objeto de malla que combina la geometría y el material
+    const poligono = new THREE.Line(geometry, material);
+  
+    return poligono;
+  }
+
+  function crearPoligono3D(nlados, radio, altura) {
+    const geometry = new THREE.BufferGeometry();
+    const vertices = [];
+    const indices = [];
+
+    // Se calculan los vértices del polígono
+    const ang = (2 * Math.PI) / nlados;
+    for (let i = 0; i < nlados; i++) {
+        const x = radio * Math.cos(i * ang);
+        const y = radio * Math.sin(i * ang);
+        vertices.push(x, y, 0);
+        vertices.push(x, y, altura);
+    }
+
+    // Se agrega los dos últimos vértices para cerrar las caras
+    vertices.push(radio, 0, 0);
+    vertices.push(radio, 0, altura);
+
+    // Se asigna los vértices a la geometría
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+
+    // Se agrega los índices para definir las caras
+    for (let i = 0; i < nlados; i++) {
+        const startIndex = i * 2;
+        indices.push(startIndex, startIndex + 1, startIndex + 3);
+        indices.push(startIndex, startIndex + 3, startIndex + 2);
+    }
+
+    // Añadimos los índices para cerrar las caras superior e inferior
+    const numVertices = vertices.length / 3;
+    const ultimoVertice = numVertices - 1;
+    const penultimoVertice = numVertices - 2;
+    for (let i = 0; i < nlados; i++) {
+        indices.push(ultimoVertice - i * 2, ultimoVertice - (i + 1) * 2, penultimoVertice);
+        indices.push(i * 2, (i + 1) * 2, ultimoVertice - i * 2 - 1);
+    }
+
+    // Se asignan los índices a la geometría
+    geometry.setIndex(indices);
+
+    // Se crea un material para el polígono
+    const material = new THREE.LineBasicMaterial({ color: 0x000fff });
+
+    // Se crea un objeto de malla que combina la geometría y el material
+    const poligono = new THREE.Line(geometry, material);
+
+    return poligono;
 }
+
+var poligoninho = crearPoligono(5,1);
+//scene.add(poligoninho);
+
+var poligonzinho3D = crearPoligono3D(5,1,2);
+scene.add(poligonzinho3D);
+
+
+const controls = new THREE.OrbitControls(camera, renderer.domElement);  
+
+function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  animate();
 
